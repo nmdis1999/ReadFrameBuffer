@@ -1,43 +1,43 @@
-    #include <stdlib.h>
-    #include <stdio.h>
-    #include <stdint.h>
-    #include <fcntl.h>
-    #include <sys/stat.h>
-    #include <sys/mman.h>
-    #include <unistd.h>
+// Copyright(C) 2018 Iti Shree
 
-    static uint32_t map_size = 0x08000000;
-    static uint32_t map_base = 0x18000000;
-    static uint32_t map_addr = 0x00000000;
+#include <fcntl.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
-    static char *dev_mem = "/dev/mem";
+static uint32_t map_size = 0x08000000;
+static uint32_t map_base = 0x18000000;
+static uint32_t map_addr = 0x00000000;
 
-    int main(int argc, char **argv)
-    {
-        int fd ;
-        void *buf;
-        if ((fd=open(dev_mem,O_RWDR| O_SYNC))== -1){
-            printf ("can't open /dev/mem .\n");
-            exit(EXIT_FAILURE);
-        }
+static char *dev_mem = "/dev/mem";
 
-        buf = mmap((void *)map_addr, map_size, PROT_READ|PROT_WRITE, MAP_SHARED,fd,map_base);
-        if(buf == (void *)-1){
-            printf("Can't be mapped. \n");
-            exit(EXIT_FAILURE);
-        }
-        else
-            map_addr=(long unsigned)buf;
+int main(int argc, char **argv) {
+  int fd;
+  void *buf;
+  if ((fd = open(dev_mem, O_RDWR | O_SYNC)) == -1) {
+    printf("can't open /dev/mem .\n");
+    exit(EXIT_FAILURE);
+  }
 
-        fwrite(buf,1,map_size,stdout);
+  buf = mmap((void *)map_addr, map_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
+             map_base);
+  if (buf == (void *)-1) {
+    printf("Can't be mapped. \n");
+    exit(EXIT_FAILURE);
+  } else
+    map_addr = (long unsigned)buf;
 
-        int unmap_file = munmap(buf, map_size);
+  fwrite(buf, 1, map_size, stdout);
 
-        close(fd);
+  int unmap_file = munmap(buf, map_size);
 
-        return 0;
-    }
+  close(fd);
 
+  return 0;
+}
 
 
 
