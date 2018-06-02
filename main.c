@@ -16,15 +16,15 @@ static char *dev_mem = "/dev/mem";
 
 int main(int argc, char **argv) {
     int fd;
-    void *buf;
+    char *buf;
     if ((fd = open(dev_mem, O_RDWR | O_SYNC)) == -1) {
         printf("can't open /dev/mem .\n");
         exit(EXIT_FAILURE);
     }
 
-    buf = mmap((void *) map_addr, map_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
+    buf = mmap((char *) map_addr, map_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
                map_base);
-    if (buf == (void *) -1) {
+    if (buf == (char *) -1) {
         printf("Can't be mapped. \n");
         exit(EXIT_FAILURE);
     } else
@@ -32,12 +32,17 @@ int main(int argc, char **argv) {
 
     fwrite(buf, 1, map_size, stdout);
 
+    unsigned long sum = 0;
+
+    for (int i = 0; i < map_size; i++) {
+        sum += *buf++;
+    }
+
+    printf("%lu\n", sum);
+
     int unmap_file = munmap(buf, map_size);
 
     close(fd);
 
     return 0;
 }
-
-
-
