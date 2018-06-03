@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
 
     buf = mmap((char *) map_addr, map_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
                map_base);
-    if (buf == (char *) -1) {
+    if (buf == (void *) -1) {
         printf("Can't be mapped. \n");
         exit(EXIT_FAILURE);
     } else
@@ -32,13 +32,23 @@ int main(int argc, char **argv) {
 
     fwrite(buf, 1, map_size, stdout);
 
-    unsigned long sum = 0;
 
-    for (int i = 0; i < map_size; i++) {
-        sum += *buf++;
+    //Fletcher's checksum algorithm
+
+    register short int sum1 = 0;
+    register unsigned long int sum2 = 0;
+
+    while (map_size--) {
+        sum1 += *buf++;
+        if (sum1 >= 255)
+            sum1 -= 255;
+
     }
 
-    printf("%lu\n", sum);
+    sum2 %= 255;
+
+    printf("%lu\n", sum2);
+
 
     int unmap_file = munmap(buf, map_size);
 
