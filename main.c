@@ -42,6 +42,7 @@ int main(int argc, char **argv) {
         sum1 += *buf++;
         if (sum1 >= 255)
             sum1 -= 255;
+        sum2 += sum1;
 
     }
 
