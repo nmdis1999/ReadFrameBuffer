@@ -49,9 +49,6 @@ int main(int argc, char **argv) {
 
     printf("%lu\n", sum2);
 
-
-    int unmap_file = munmap(buf, map_size);
-
     close(fd);
 
     return 0;
