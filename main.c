@@ -16,13 +16,13 @@ static char *dev_mem = "/dev/mem";
 
 int main(int argc, char **argv) {
     int fd;
-    char *buf;
+    uint32_t *buf;
     if ((fd = open(dev_mem, O_RDWR | O_SYNC)) == -1) {
         printf("can't open /dev/mem .\n");
         exit(EXIT_FAILURE);
     }
 
-    buf = mmap((char *) map_addr, map_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
+    buf = mmap((uint32_t *) map_addr, map_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
                map_base);
     if (buf == (void *) -1) {
         printf("Can't be mapped. \n");
@@ -30,25 +30,29 @@ int main(int argc, char **argv) {
     } else
         map_addr = (long unsigned) buf;
 
-    fwrite(buf, 1, map_size, stdout);
+    // fwrite(buf, 1, map_size, stdout);
 
 
-    //Fletcher's checksum algorithm
+    // Fletcher's 32 bit checksum algorithm
 
-    register short int sum1 = 0;
-    register unsigned long int sum2 = 0;
-
-    while (map_size--) {
-        sum1 += *buf++;
-        if (sum1 >= 255)
-            sum1 -= 255;
-        sum2 += sum1;
-
+    uint32_t sum1 = 0xffff, sum2 = 0xffff;
+    uint32_t tempLen;
+    while (map_size) {
+        tempLen = map_size >= 359 ? 359 : map_size;
+        map_size -= tempLen;
+        do {
+            sum2 += sum1 += *buf++;
+        } while (--tempLen);
+        sum1 = (sum2 & 0xffff) + (sum1 >> 16);
+        sum2 = (sum2 & 0xffff) + (sum2 >> 16);
     }
 
-    sum2 %= 255;
+    sum1 = (sum1 & 0xffff) + (sum1 >> 16);
+    sum2 = (sum2 & 0xffff) + (sum2 >> 16);
 
-    printf("%lu\n", sum2);
+    uint32_t sum = sum2 << 16 | sum1;
+
+    printf("%u", sum);
 
     close(fd);
 
